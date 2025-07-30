@@ -3,8 +3,10 @@ package server
 import (
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/lumiknit/can/pkg/css"
 	"github.com/lumiknit/can/static"
 )
 
@@ -17,9 +19,19 @@ func SetupRoutes(logger *slog.Logger, releaseMode bool) *gin.Engine {
 	r.Use(gin.Logger(), gin.Recovery())
 
 	static.Each(func(file *static.Item) {
+		data := file.Content
+		switch strings.Split(file.ContentType, ";")[0] {
+		case "text/css":
+			if stylesheet, err := css.Parse(string(file.Content)); err == nil {
+				data = []byte(stylesheet.Minify())
+			} else {
+				logger.Warn("Failed to parse CSS for minification", "path", file.Path, "error", err)
+			}
+		}
+
 		r.GET(file.Path, func(c *gin.Context) {
 			c.Header("Content-Type", file.ContentType)
-			c.Data(http.StatusOK, file.ContentType, file.Content)
+			c.Data(http.StatusOK, file.ContentType, data)
 		})
 		r.HEAD(file.Path, func(c *gin.Context) {
 			c.Header("Content-Type", file.ContentType)
