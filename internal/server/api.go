@@ -1,15 +1,17 @@
 package server
 
 import (
+	"encoding/json"
 	"net/http"
 	"time"
-
-	"github.com/gin-gonic/gin"
 )
 
-func healthzHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
+func healthzHandler(w http.ResponseWriter, r *http.Request) {
+	response := map[string]interface{}{
 		"status":    "ok",
 		"timestamp": time.Now().Unix(),
-	})
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }

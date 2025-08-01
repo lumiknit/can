@@ -1,0 +1,9 @@
+{
+	"version": 1,
+	"static": {
+		"/static/global.css": {
+			"content_type": "text/css",
+			"content": "body { font-family: Arial, sans-serif; }"
+		}
+	}
+}

@@ -2,7 +2,7 @@ package server
 
 import (
 	_ "embed"
-	"html/template"
+	"text/template"
 )
 
 //go:embed index.tpl.html
