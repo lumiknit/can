@@ -1,21 +1,10 @@
-package server
+package middleware
 
 import (
 	"log/slog"
 	"net/http"
 	"time"
 )
-
-// Middleware is a function that wraps an http.Handler
-type Middleware func(http.Handler) http.Handler
-
-// Chain applies multiple middleware functions to a handler
-func Chain(h http.Handler, middlewares ...Middleware) http.Handler {
-	for i := len(middlewares) - 1; i >= 0; i-- {
-		h = middlewares[i](h)
-	}
-	return h
-}
 
 // LoggingMiddleware logs HTTP requests
 func LoggingMiddleware(logger *slog.Logger) Middleware {
@@ -36,25 +25,6 @@ func LoggingMiddleware(logger *slog.Logger) Middleware {
 				"duration", duration,
 				"remote_addr", r.RemoteAddr,
 			)
-		})
-	}
-}
-
-// RecoveryMiddleware recovers from panics and returns 500 error
-func RecoveryMiddleware(logger *slog.Logger) Middleware {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			defer func() {
-				if err := recover(); err != nil {
-					logger.Error("Panic recovered",
-						"error", err,
-						"method", r.Method,
-						"path", r.URL.Path,
-					)
-					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				}
-			}()
-			next.ServeHTTP(w, r)
 		})
 	}
 }

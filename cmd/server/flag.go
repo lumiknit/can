@@ -13,6 +13,7 @@ func HandleFlags() *config.Config {
 		configFile  = flag.String("config", "", "Path to JSON configuration file")
 		host        = flag.String("host", "", "Host to bind the server to")
 		port        = flag.Int("port", 0, "Port to bind the server to")
+		basePath    = flag.String("base", "", "Base path for the application")
 		releaseMode = flag.Bool("release-mode", false, "Enable release mode")
 	)
 
@@ -20,6 +21,7 @@ func HandleFlags() *config.Config {
 	flag.StringVar(configFile, "C", "", "Path to JSON configuration file (short)")
 	flag.StringVar(host, "h", "", "Host to bind the server to (short)")
 	flag.IntVar(port, "p", 0, "Port to bind the server to (short)")
+	flag.StringVar(basePath, "b", "", "Base path for the application (short)")
 	flag.BoolVar(releaseMode, "R", false, "Enable release mode (short)")
 
 	flag.Parse()
@@ -45,6 +47,9 @@ func HandleFlags() *config.Config {
 	}
 	if *port != 0 {
 		cfg.Port = *port
+	}
+	if *basePath != "" {
+		cfg.BasePath = *basePath
 	}
 	if *releaseMode {
 		cfg.ReleaseMode = *releaseMode

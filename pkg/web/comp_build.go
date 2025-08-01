@@ -15,13 +15,38 @@ type Builder struct {
 	Ctx context.Context
 	Buf strings.Builder
 
-	Stylesheets []*Stylesheet
+	// Title for the HTML document
+	Title string
+
+	// Meta tags to include in the head
+	MetaTags []MetaTag
+
+	// Stylesheets to include as <link> tags
+	Stylesheets []string
+
+	// Inline scripts to include in the body
+	InlineScripts []string
+
+	// Script files to include as <script src> tags
+	ScriptFiles []string
+}
+
+type MetaTag struct {
+	Name      string
+	Content   string
+	HTTPEquiv string
+	Property  string
+	Charset   string
 }
 
 func NewBuilder(ctx context.Context) *Builder {
 	return &Builder{
-		Ctx: ctx,
-		Buf: strings.Builder{},
+		Ctx:           ctx,
+		Buf:           strings.Builder{},
+		MetaTags:      []MetaTag{},
+		Stylesheets:   []string{},
+		InlineScripts: []string{},
+		ScriptFiles:   []string{},
 	}
 }
 
@@ -29,10 +54,41 @@ func (b *Builder) String() string {
 	return b.Buf.String()
 }
 
-func (b *Builder) AddStylesheet(s *Stylesheet) {
-	if s != nil {
-		b.Stylesheets = append(b.Stylesheets, s)
+func (b *Builder) AddStylesheet(href string) {
+	if href != "" {
+		b.Stylesheets = append(b.Stylesheets, href)
 	}
+}
+
+func (b *Builder) AddInlineScript(script string) {
+	if script != "" {
+		b.InlineScripts = append(b.InlineScripts, script)
+	}
+}
+
+func (b *Builder) AddScriptFile(src string) {
+	if src != "" {
+		b.ScriptFiles = append(b.ScriptFiles, src)
+	}
+}
+
+func (b *Builder) SetTitle(title string) {
+	b.Title = title
+}
+
+func (b *Builder) AddMetaTag(meta MetaTag) {
+	b.MetaTags = append(b.MetaTags, meta)
+}
+
+func (b *Builder) SetRefresh(seconds int, url string) {
+	content := strconv.Itoa(seconds)
+	if url != "" {
+		content += "; url=" + url
+	}
+	b.AddMetaTag(MetaTag{
+		HTTPEquiv: "refresh",
+		Content:   content,
+	})
 }
 
 // P pushes a contents to the builder's buffer.

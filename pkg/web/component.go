@@ -1,5 +1,7 @@
 package web
 
+import "strings"
+
 // Component is a unit of web content, which can be rendered into HTML.
 type Component interface {
 	// Render renders the component into HTML.
@@ -11,18 +13,40 @@ type Attrs map[string]string
 
 // Tag represents a generic HTML tag.
 type TagComponent struct {
-	Name string
+	Name   string
+	IsVoid bool
 	Attrs
 	Body []any
 }
 
 var _ Component = (*TagComponent)(nil)
 
+// voidElements are HTML elements that cannot have content and must be self-closing
+var voidElements = map[string]bool{
+	"area":   true,
+	"base":   true,
+	"br":     true,
+	"col":    true,
+	"embed":  true,
+	"hr":     true,
+	"img":    true,
+	"input":  true,
+	"link":   true,
+	"meta":   true,
+	"source": true,
+	"track":  true,
+	"wbr":    true,
+}
+
 func Tag(name string, attrs Attrs, body ...any) *TagComponent {
+	// Convert tag name to lowercase
+	normalizedName := strings.ToLower(name)
+
 	return &TagComponent{
-		Name:  name,
-		Attrs: attrs,
-		Body:  body,
+		Name:   normalizedName,
+		IsVoid: voidElements[normalizedName],
+		Attrs:  attrs,
+		Body:   body,
 	}
 }
 
@@ -37,8 +61,8 @@ func (t *TagComponent) Render(b *Builder) error {
 		}
 	}
 
-	if len(t.Body) == 0 {
-		return b.P("/>")
+	if t.IsVoid {
+		return b.P(" />")
 	}
 
 	if err := b.P(">"); err != nil {

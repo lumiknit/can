@@ -1,7 +1,9 @@
 package hello
 
 import (
+	"context"
 	"embed"
+	"net/http"
 
 	"github.com/lumiknit/can/pkg/web"
 )
@@ -17,9 +19,20 @@ func MyCSS() *web.Stylesheet {
 }
 
 func App() *web.App {
-	a := &web.App{}
+	a := &web.App{
+		BasePath: "/hello",
+	}
 	a.AddStaticEmbedFS(fs, "static")
 	a.AddStyle(MyCSS())
+
+	// Add hello page
+	a.AddPage(&web.Page{
+		Path:  "/",
+		Title: "Hello World",
+		Handle: func(ctx context.Context, req *http.Request) (web.Component, error) {
+			return &pageTop{}, nil
+		},
+	})
 
 	return a
 }

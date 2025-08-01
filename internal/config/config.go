@@ -10,6 +10,7 @@ import (
 type Config struct {
 	Host        string `json:"host"`
 	Port        int    `json:"port"`
+	BasePath    string `json:"base_path"`
 	ReleaseMode bool   `json:"release_mode"`
 }
 
@@ -18,6 +19,7 @@ func Default() *Config {
 	return &Config{
 		Host:        "localhost",
 		Port:        8080,
+		BasePath:    "/",
 		ReleaseMode: os.Getenv("GIN_MODE") == "release",
 	}
 }
@@ -40,4 +42,22 @@ func LoadFromFile(filename string) (*Config, error) {
 	}
 
 	return &config, nil
+}
+
+// IsProduction returns true if the server is running in production mode
+func (c *Config) IsProduction() bool {
+	return c.Host != "localhost" && c.Host != "127.0.0.1"
+}
+
+// AllowedOrigins returns the allowed CORS origins based on the host
+func (c *Config) AllowedOrigins() []string {
+	if c.IsProduction() {
+		// In production, only allow the configured host
+		return []string{
+			fmt.Sprintf("https://%s", c.Host),
+			fmt.Sprintf("http://%s", c.Host),
+		}
+	}
+	// In development, allow all origins
+	return []string{"*"}
 }

@@ -14,7 +14,7 @@ type Page struct {
 	Path   string
 
 	Title       string
-	Stylesheets []Stylesheet
+	Stylesheets []string // File paths to stylesheets
 
 	Handle PageHandler
 }

@@ -14,7 +14,7 @@ func main() {
 	// Setup structured logging
 	logger := logger.New(cfg.ReleaseMode)
 
-	handler := server.SetupRoutes(logger, cfg.ReleaseMode)
+	handler := server.SetupRoutes(logger, cfg)
 
 	httpServer := &http.Server{
 		Addr:    cfg.Addr(),
