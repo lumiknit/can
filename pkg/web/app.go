@@ -96,6 +96,9 @@ func (a *App) HandlePage(w http.ResponseWriter, r *http.Request) {
 	builder := NewBuilder(ctx)
 	builder.SetTitle(matchedPage.Title)
 
+	// Add common presets (favicon, icons, etc.)
+	builder.AddCommonPresets()
+
 	// Add global stylesheets from app
 	for _, stylesheet := range a.Stylesheets {
 		if stylesheet.Href != "" {
@@ -127,59 +130,56 @@ func (a *App) HandlePage(w http.ResponseWriter, r *http.Request) {
 func (a *App) buildHTML5Document(b *Builder) string {
 	var html strings.Builder
 
-	html.WriteString("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n")
-	html.WriteString("  <meta charset=\"UTF-8\">\n")
-	html.WriteString("  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n")
+	// HTML declaration with lang from builder
+	lang := b.Lang
+	if lang == "" {
+		lang = "en" // fallback
+	}
+	html.WriteString(fmt.Sprintf("<!DOCTYPE html>\n<html lang=\"%s\"><head>", lang))
 
-	// Additional meta tags
+	// Meta tags from builder
 	for _, meta := range b.MetaTags {
-		html.WriteString("  <meta")
-		if meta.Name != "" {
-			html.WriteString(fmt.Sprintf(" name=\"%s\"", meta.Name))
-		}
-		if meta.HTTPEquiv != "" {
-			html.WriteString(fmt.Sprintf(" http-equiv=\"%s\"", meta.HTTPEquiv))
-		}
-		if meta.Property != "" {
-			html.WriteString(fmt.Sprintf(" property=\"%s\"", meta.Property))
-		}
-		if meta.Charset != "" {
-			html.WriteString(fmt.Sprintf(" charset=\"%s\"", meta.Charset))
-		}
-		if meta.Content != "" {
-			html.WriteString(fmt.Sprintf(" content=\"%s\"", meta.Content))
-		}
-		html.WriteString(">\n")
+		meta.WriteHTML(&html)
+	}
+
+	// Link tags from builder
+	for _, link := range b.LinkTags {
+		link.WriteHTML(&html)
 	}
 
 	// Title
 	if b.Title != "" {
-		html.WriteString(fmt.Sprintf("  <title>%s</title>\n", b.Title))
+		html.WriteString("<title>")
+		html.WriteString(b.Title)
+		html.WriteString("</title>")
 	}
 
 	// Stylesheet links
 	for _, href := range b.Stylesheets {
-		html.WriteString(fmt.Sprintf("  <link rel=\"stylesheet\" href=\"%s\">\n", href))
+		(&LinkTag{
+			Rel:  "stylesheet",
+			Href: href,
+		}).WriteHTML(&html)
 	}
 
-	html.WriteString("</head>\n<body>\n")
+	html.WriteString("</head><body>")
 
 	// Body content
 	html.WriteString(b.String())
 
 	// Script files
 	for _, src := range b.ScriptFiles {
-		html.WriteString(fmt.Sprintf("  <script src=\"%s\"></script>\n", src))
+		html.WriteString(fmt.Sprintf("  <script src=\"%s\"></script>", src))
 	}
 
 	// Inline scripts
 	for _, script := range b.InlineScripts {
-		html.WriteString("  <script>\n")
+		html.WriteString("  <script>")
 		html.WriteString(script)
-		html.WriteString("\n  </script>\n")
+		html.WriteString("</script>")
 	}
 
-	html.WriteString("</body>\n</html>")
+	html.WriteString("</body></html>")
 
 	return html.String()
 }

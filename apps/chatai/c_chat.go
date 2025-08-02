@@ -21,7 +21,7 @@ func (c *chatComponent) Render(b *web.Builder) error {
 
 	// Set auto-refresh when processing
 	if c.IsProcessing {
-		b.SetRefresh(5, "")
+		b.SetRefreshMeta(5, "")
 	}
 
 	return b.P(
@@ -241,7 +241,7 @@ func (a *autoScrollComponent) Render(b *web.Builder) error {
 	} else {
 		scrollToLast();
 	}
-	
+
 	function scrollToLast() {
 		var lastMessage = document.getElementById('message-%d');
 		if (lastMessage) {
